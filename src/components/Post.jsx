@@ -6,14 +6,13 @@ import { Avatar } from './Avatar';
 import { Comment } from './Comment'
 import styles from './Post.module.css'
 
-const [comments, setComments] = useState([
-  1,
-  2,
-])
-
-// estado => useState = variaveis que eu quero que o componente monitore
-
 export function Post({author, publishedAt, content}){
+  const [comments, setComments] = useState([
+    'Post muito bacana, hein?!'
+  ])
+
+  const [newCommentText, setNewCommentText] = useState('')
+
  const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
   locale: ptBR
  })
@@ -25,9 +24,28 @@ export function Post({author, publishedAt, content}){
 
  function handleCreateNewComment(){
   event.preventDefault()
-
-  setComments([...comments, comments.length + 1])
+  const newCommentText = event.target.comment.value
+  setComments([...comments, newCommentText])
+  setNewCommentText('')
  }
+
+ function handleNewCommentChange(){
+  event.target.setCustomValidity('')
+  setNewCommentText(event.target.value)
+ }
+
+ function handleNewCommentInvalid(){
+  event.target.setCustomValidity('Esse campo é obrigatório!')
+ }
+
+ function deleteComment(commentToDelete){
+  const commentsWithoutDeleteOne = comments.filter(comment => {
+    return comment != commentToDelete
+  })
+  setComments(commentsWithoutDeleteOne)
+ }
+
+  const isNewCommentInputEmpty = newCommentText.length === 0
 
   return(
     <article className={styles.post} >
@@ -43,42 +61,44 @@ export function Post({author, publishedAt, content}){
           {publishedDateRelativeToNow}
         </time>
       </header>
-      {/* estado = variáveis que eu quero que o componente monitore */}
 
       <div className={styles.content}>
         {content.map(line => {
           if(line.type === 'paragraph'){
-            return <p>{line.content}</p>;
+            return <p key={line.content}>{line.content}</p>;
           }else if (line.type === 'link'){
-            return <p><a href="#">{line.content}</a></p>
+            return <p key={line.content}><a href="#">{line.content}</a></p>
           }
         })}
-        <p>Fala galeraa 👋</p>
-        <p>Acabei de subir mais um projeto no meu portifa. É um projeto que fiz no NLW Return, evento da Rocketseat. O nome do projeto é DoctorCare 🚀</p>
-        <p><a href=''> jane.design/doctorcare</a></p>
-        <p>
-          <a href=''>#novo projeto</a>{' '}
-          <a href=''>#nlw</a>{' '}
-          <a href=''>#rocketseat</a>{' '}
-        </p>
       </div>
 
       <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
         <strong>Deixe seu feedback</strong>
 
         <textarea
+          name="comment"
           placeholder='Deixe um comentario'
+          value={newCommentText}
+          onChange={handleNewCommentChange}
+          onInvalid={handleNewCommentInvalid}
+          required
         />
 
         <footer>
-          <button type='submit'>Publicar</button>
+          <button type='submit' disabled={isNewCommentInputEmpty} >Publicar</button>
         </footer>
       </form>
 
       <div className={styles.commentList}>
-        <Comment />
-        <Comment />
-        <Comment />
+        {comments.map(comment => {
+          return (
+            <Comment 
+              key={comment}
+              content={comment} 
+              onDeleteComment={deleteComment} 
+            />
+          )
+        })}
       </div>
     </article>
   )
