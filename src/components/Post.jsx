@@ -1,22 +1,58 @@
+import { format, formatDistanceToNow } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+import { useState } from 'react';
+import { Avatar } from './Avatar';
+
 import { Comment } from './Comment'
 import styles from './Post.module.css'
 
-export function Post(){
+const [comments, setComments] = useState([
+  1,
+  2,
+])
+
+// estado => useState = variaveis que eu quero que o componente monitore
+
+export function Post({author, publishedAt, content}){
+ const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+  locale: ptBR
+ })
+
+ const publishedDateRelativeToNow = formatDistanceToNow(publishedAt, {
+  locale: ptBR,
+  addSuffix: true
+ })
+
+ function handleCreateNewComment(){
+  event.preventDefault()
+
+  setComments([...comments, comments.length + 1])
+ }
+
   return(
     <article className={styles.post} >
       <header>
         <div className={styles.author}>
-          <img className={styles.avatar} src="https://github.com/JoaoChrisostomo.png" />
+          <Avatar src={author.avatarUrl} />
           <div className={styles.authorInfo}>
-            <strong>Joao Pedro</strong>
-            <span>Web Developer</span>
+            <strong>{author.name}</strong>
+            <span>{author.role}</span>
           </div>
         </div>
-
-        <time title="11 de maio às 08:13" dateTime='2022-05-11 08:13:13'>Publicado há uma hora</time>
+        <time title={publishedDateFormatted} dateTime={publishedAt.toISOString()}>
+          {publishedDateRelativeToNow}
+        </time>
       </header>
+      {/* estado = variáveis que eu quero que o componente monitore */}
 
       <div className={styles.content}>
+        {content.map(line => {
+          if(line.type === 'paragraph'){
+            return <p>{line.content}</p>;
+          }else if (line.type === 'link'){
+            return <p><a href="#">{line.content}</a></p>
+          }
+        })}
         <p>Fala galeraa 👋</p>
         <p>Acabei de subir mais um projeto no meu portifa. É um projeto que fiz no NLW Return, evento da Rocketseat. O nome do projeto é DoctorCare 🚀</p>
         <p><a href=''> jane.design/doctorcare</a></p>
@@ -27,7 +63,7 @@ export function Post(){
         </p>
       </div>
 
-      <form className={styles.commentForm}>
+      <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
         <strong>Deixe seu feedback</strong>
 
         <textarea
